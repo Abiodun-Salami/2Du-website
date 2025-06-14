@@ -512,6 +512,10 @@
                     <form name="early-access" method="POST" data-netlify="true" class="signup-form">
   <input type="hidden" name="form-name" value="early-access">
   <!-- the rest of your form fields go here -->
+                        <form name="early-access" netlify netlify-honeypot="bot-field" hidden>
+  <input type="text" name="name" />
+  <input type="email" name="email" />
+  <input type="text" name="role" />
 </form>
 
                         <div class="form-group">
