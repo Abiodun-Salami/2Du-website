@@ -510,21 +510,27 @@
                 </div>
                 <div class="early-access-form">
          <form name="early-access" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="signup-form">
+  <!-- Hidden input to signal Netlify form handling -->
   <input type="hidden" name="form-name" value="early-access" />
+
+  <!-- Honeypot field for spam bots -->
   <p hidden>
-    <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
+    <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
   </p>
 
+  <!-- Email -->
   <div class="form-group">
-    <input type="email" id="email" name="email" placeholder="Enter your email address" required />
+    <input type="email" name="email" placeholder="Enter your email address" required />
   </div>
 
+  <!-- Name -->
   <div class="form-group">
-    <input type="text" id="name" name="name" placeholder="Your name" required />
+    <input type="text" name="name" placeholder="Your name" required />
   </div>
 
+  <!-- Role -->
   <div class="form-group">
-    <select id="role" name="role" required>
+    <select name="role" required>
       <option value="">What describes you best?</option>
       <option value="entrepreneur">Entrepreneur</option>
       <option value="student">Student</option>
@@ -535,6 +541,7 @@
     </select>
   </div>
 
+  <!-- Submit -->
   <button type="submit" class="btn btn-primary btn-large">
     <i class="fas fa-rocket"></i> Get Early Access
   </button>
@@ -543,6 +550,7 @@
     <i class="fas fa-lock"></i> We respect your privacy. Unsubscribe at any time.
   </p>
 </form>
+
                 </div>
             </div>
         </div>
