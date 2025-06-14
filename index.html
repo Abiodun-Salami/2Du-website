@@ -509,7 +509,11 @@
                     </div>
                 </div>
                 <div class="early-access-form">
-                    <form id="early-access-form" class="signup-form">
+                    <form name="early-access" method="POST" data-netlify="true" class="signup-form">
+  <input type="hidden" name="form-name" value="early-access">
+  <!-- the rest of your form fields go here -->
+</form>
+
                         <div class="form-group">
                             <input type="email" id="email" name="email" placeholder="Enter your email address" required>
                         </div>
