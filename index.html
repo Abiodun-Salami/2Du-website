@@ -510,7 +510,7 @@
                 </div>
                 <div class="early-access-form">
          <div class="early-access-form">
-  <form name="early-access" method="GET" action="/success/" data-netlify="true" netlify-honeypot="bot-field" class="signup-form">
+  <form name="early-access" method="POST" action="/success/" data-netlify="true" netlify-honeypot="bot-field" class="signup-form">
     
     <!-- Hidden input to signal Netlify form handling -->
     <input type="hidden" name="form-name" value="early-access" />
@@ -544,9 +544,12 @@
     </div>
 
     <!-- Submit Button -->
-    <button type="submit" class="btn btn-primary btn-large">
+    <!-- <button type="submit" class="btn btn-primary btn-large">
       <i class="fas fa-rocket"></i> Get Early Access
-    </button>
+    </button> -->
+    <a href="/success/" class="btn btn-primary btn-large">
+        <i class="fas fa-rocket"></i> Get Early Access
+    </a>
 
     <p class="form-note">
       <i class="fas fa-lock"></i> We respect your privacy. Unsubscribe at any time.
