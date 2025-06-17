@@ -10,7 +10,10 @@ class PWAFeatures {
   }
   
   async init() {
-    console.log('2Du! PWA: Initializing advanced features');
+    console.log('🚀 2Du! PWA: Initializing advanced features');
+    console.log('📱 2Du! PWA: User Agent:', navigator.userAgent);
+    console.log('🔒 2Du! PWA: Protocol:', location.protocol);
+    console.log('🌐 2Du! PWA: Online status:', navigator.onLine);
     
     // Check if app is installed
     this.checkInstallStatus();
@@ -36,7 +39,13 @@ class PWAFeatures {
     // Initialize background sync
     this.setupBackgroundSync();
     
-    console.log('2Du! PWA: Advanced features initialized');
+    console.log('✅ 2Du! PWA: Advanced features initialized successfully');
+    
+    // Log manifest status
+    this.checkManifestStatus();
+    
+    // Log service worker status
+    this.checkServiceWorkerStatus();
   }
   
   checkInstallStatus() {
@@ -46,7 +55,46 @@ class PWAFeatures {
     
     if (this.isInstalled) {
       document.body.classList.add('pwa-installed');
-      console.log('2Du! PWA: App is installed');
+      console.log('📱 2Du! PWA: App is installed and running in standalone mode');
+    } else {
+      console.log('🌐 2Du! PWA: App is running in browser mode');
+    }
+  }
+  
+  async checkManifestStatus() {
+    try {
+      const response = await fetch('/manifest.json');
+      if (response.ok) {
+        const manifest = await response.json();
+        console.log('📋 2Du! PWA: Manifest loaded successfully');
+        console.log('📋 2Du! PWA: App name:', manifest.name);
+        console.log('📋 2Du! PWA: Icons count:', manifest.icons?.length || 0);
+        console.log('📋 2Du! PWA: Start URL:', manifest.start_url);
+        console.log('📋 2Du! PWA: Display mode:', manifest.display);
+      } else {
+        console.error('❌ 2Du! PWA: Manifest failed to load:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ 2Du! PWA: Manifest error:', error);
+    }
+  }
+  
+  async checkServiceWorkerStatus() {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          console.log('🔧 2Du! PWA: Service worker registered');
+          console.log('🔧 2Du! PWA: SW state:', registration.active?.state);
+          console.log('🔧 2Du! PWA: SW scope:', registration.scope);
+        } else {
+          console.log('⚠️ 2Du! PWA: No service worker registration found');
+        }
+      } catch (error) {
+        console.error('❌ 2Du! PWA: Service worker check failed:', error);
+      }
+    } else {
+      console.log('❌ 2Du! PWA: Service workers not supported');
     }
   }
   
@@ -57,10 +105,14 @@ class PWAFeatures {
     
     // App install events with enhanced debugging
     window.addEventListener('beforeinstallprompt', (e) => {
-      console.log('2Du! PWA: beforeinstallprompt event fired');
+      console.log('2Du! PWA: beforeinstallprompt event fired - install prompt captured');
       e.preventDefault();
       this.installPrompt = e;
-      this.showInstallBanner();
+      
+      // Show install banner immediately when prompt is available
+      setTimeout(() => {
+        this.showInstallBanner();
+      }, 1000); // Small delay to ensure page is ready
     });
     
     window.addEventListener('appinstalled', () => {
@@ -86,20 +138,39 @@ class PWAFeatures {
     window.addEventListener('load', () => {
       setTimeout(() => {
         this.checkInstallPromptAvailability();
-      }, 3000); // Wait 3 seconds after page load
+      }, 5000); // Wait 5 seconds after page load for better detection
+    });
+    
+    // Additional check on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        this.checkInstallPromptAvailability();
+      }, 2000);
     });
   }
   
   checkInstallPromptAvailability() {
-    console.log('2Du! PWA: Checking install prompt availability');
+    console.log('2Du! PWA: === Install Prompt Availability Check ===');
     console.log('2Du! PWA: Install prompt available:', !!this.installPrompt);
     console.log('2Du! PWA: Is installed:', this.isInstalled);
     console.log('2Du! PWA: User agent:', navigator.userAgent);
+    console.log('2Du! PWA: Is HTTPS:', location.protocol === 'https:');
+    console.log('2Du! PWA: Service worker registered:', !!navigator.serviceWorker.controller);
+    
+    // Check if app is already installed
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+      console.log('2Du! PWA: App is running in standalone mode (already installed)');
+      this.isInstalled = true;
+      return;
+    }
     
     // Show install banner if conditions are met
     if (!this.isInstalled && !this.installPrompt) {
-      console.log('2Du! PWA: No install prompt detected, showing manual install option');
+      console.log('2Du! PWA: No automatic install prompt detected, showing manual install option');
       this.showManualInstallBanner();
+    } else if (!this.isInstalled && this.installPrompt) {
+      console.log('2Du! PWA: Install prompt available, showing install banner');
+      this.showInstallBanner();
     }
   }
   
@@ -262,13 +333,34 @@ class PWAFeatures {
   }
   
   showInstallBanner() {
+    console.log('2Du! PWA: Attempting to show install banner');
+    
     if (!this.isInstalled) {
-      document.getElementById('install-banner').classList.remove('hidden');
+      const banner = document.getElementById('install-banner');
+      if (banner) {
+        banner.classList.remove('hidden');
+        console.log('2Du! PWA: Install banner shown successfully');
+      } else {
+        console.log('2Du! PWA: Install banner element not found, creating it');
+        this.setupInstallPrompt();
+        setTimeout(() => {
+          const newBanner = document.getElementById('install-banner');
+          if (newBanner) {
+            newBanner.classList.remove('hidden');
+          }
+        }, 100);
+      }
+    } else {
+      console.log('2Du! PWA: App already installed, not showing banner');
     }
   }
   
   hideInstallBanner() {
-    document.getElementById('install-banner').classList.add('hidden');
+    const banner = document.getElementById('install-banner');
+    if (banner) {
+      banner.classList.add('hidden');
+      console.log('2Du! PWA: Install banner hidden');
+    }
   }
   
   async promptInstall() {
@@ -381,24 +473,26 @@ class PWAFeatures {
     const skipButton = document.getElementById('skip-notifications');
     
     // Enhanced mobile event handling for notification buttons
+    // Ensure user gesture compliance for mobile browsers
     ['click', 'touchend'].forEach(eventType => {
       enableButton.addEventListener(eventType, async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('2Du! PWA: Enable notifications triggered via', eventType);
+        console.log('2Du! PWA: Enable notifications button clicked via', eventType);
         
         // Add visual feedback
         enableButton.textContent = 'Enabling...';
         enableButton.disabled = true;
         
         try {
+          // Ensure this is called within user gesture for mobile compliance
           await this.requestNotificationPermission();
           prompt.remove();
         } catch (error) {
           console.error('2Du! PWA: Notification enable error:', error);
           enableButton.textContent = 'Enable Notifications';
           enableButton.disabled = false;
-          this.showNotificationError();
+          this.showNotificationError('Failed to enable notifications: ' + error.message);
         }
       }, { passive: false });
       
@@ -501,23 +595,12 @@ class PWAFeatures {
     // Return the VAPID public key if configured
     // This should be replaced with your actual VAPID public key
     
-    // Check for runtime-safe environment variables
-    let vapidKey = null;
-    
-    // Try different ways to get VAPID key safely
-    try {
-      // Check if process is defined (Node.js environment)
-      if (typeof process !== 'undefined' && process.env && process.env.VAPID_PUBLIC_KEY) {
-        vapidKey = process.env.VAPID_PUBLIC_KEY;
-      }
-    } catch (error) {
-      // process is not defined in browser, continue
-    }
-    
-    // Fallback to window variable
-    if (!vapidKey && typeof window !== 'undefined' && window.VAPID_PUBLIC_KEY) {
-      vapidKey = window.VAPID_PUBLIC_KEY;
-    }
+    // Safe VAPID key access as recommended
+    const vapidKey = typeof process !== 'undefined' && process.env?.VAPID_PUBLIC_KEY
+        ? process.env.VAPID_PUBLIC_KEY
+        : (typeof window !== 'undefined' && window.VAPID_PUBLIC_KEY)
+        ? window.VAPID_PUBLIC_KEY
+        : null;
     
     // For development/testing, return null to skip push notifications
     if (!vapidKey || vapidKey === 'YOUR_VAPID_PUBLIC_KEY') {
@@ -525,6 +608,7 @@ class PWAFeatures {
       return null;
     }
     
+    console.log('2Du! PWA: VAPID key configured successfully');
     return vapidKey;
   }
   
@@ -832,16 +916,36 @@ class PWAFeatures {
   
   async triggerBackgroundSync() {
     try {
+      // Check if background sync is supported
+      if (!('serviceWorker' in navigator) || !('sync' in window.ServiceWorkerRegistration.prototype)) {
+        console.log('2Du! PWA: Background sync not supported, skipping');
+        return;
+      }
+      
       const registration = await navigator.serviceWorker.ready;
       
-      // Register sync events
-      await registration.sync.register('sync-tasks');
-      await registration.sync.register('sync-progress');
-      await registration.sync.register('sync-social');
+      // Check if sync is available on the registration
+      if (!registration.sync) {
+        console.log('2Du! PWA: Sync not available on service worker registration');
+        return;
+      }
       
-      console.log('2Du! PWA: Background sync triggered');
+      // Register sync events with permission handling
+      try {
+        await registration.sync.register('sync-tasks');
+        await registration.sync.register('sync-progress');
+        await registration.sync.register('sync-social');
+        console.log('2Du! PWA: Background sync triggered successfully');
+      } catch (syncError) {
+        if (syncError.name === 'NotAllowedError') {
+          console.log('2Du! PWA: Background sync permission denied, gracefully skipping');
+        } else {
+          console.error('2Du! PWA: Background sync registration failed:', syncError);
+        }
+      }
     } catch (error) {
-      console.error('2Du! PWA: Background sync failed:', error);
+      console.error('2Du! PWA: Background sync setup failed:', error);
+      // Gracefully continue without background sync
     }
   }
   
