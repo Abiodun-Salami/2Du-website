@@ -273,9 +273,17 @@ class PWAFeatures {
   async subscribeToPush() {
     try {
       const registration = await navigator.serviceWorker.ready;
+      
+      // Check if VAPID key is configured
+      const vapidKey = this.getVapidKey();
+      if (!vapidKey) {
+        console.log('2Du! PWA: VAPID key not configured, skipping push subscription');
+        return;
+      }
+      
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array('YOUR_VAPID_PUBLIC_KEY') // Replace with actual VAPID key
+        applicationServerKey: this.urlBase64ToUint8Array(vapidKey)
       });
       
       // Send subscription to server
@@ -291,6 +299,19 @@ class PWAFeatures {
     } catch (error) {
       console.error('2Du! PWA: Push subscription failed:', error);
     }
+  }
+  
+  getVapidKey() {
+    // Return the VAPID public key if configured
+    // This should be replaced with your actual VAPID public key
+    const vapidKey = process.env.VAPID_PUBLIC_KEY || window.VAPID_PUBLIC_KEY || null;
+    
+    // For development/testing, return null to skip push notifications
+    if (!vapidKey || vapidKey === 'YOUR_VAPID_PUBLIC_KEY') {
+      return null;
+    }
+    
+    return vapidKey;
   }
   
   urlBase64ToUint8Array(base64String) {

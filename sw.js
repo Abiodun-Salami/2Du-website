@@ -87,6 +87,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // Filter out non-HTTP(S) requests (chrome-extension://, moz-extension://, etc.)
+  if (!url.protocol.startsWith('http')) {
+    console.log('2Du! PWA: Skipping non-HTTP request:', url.href);
+    return;
+  }
+  
+  // Skip requests to different origins unless they're for known CDNs
+  if (url.origin !== self.location.origin && !isAllowedExternalOrigin(url.origin)) {
+    return;
+  }
+  
   // Handle different types of requests with appropriate strategies
   if (STATIC_ASSETS.includes(url.pathname)) {
     // Cache first for static assets
@@ -105,6 +116,19 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(staleWhileRevalidate(request, DYNAMIC_CACHE));
   }
 });
+
+// Helper function to check if external origin is allowed for caching
+function isAllowedExternalOrigin(origin) {
+  const allowedOrigins = [
+    'https://fonts.googleapis.com',
+    'https://fonts.gstatic.com',
+    'https://cdnjs.cloudflare.com',
+    'https://cdn.jsdelivr.net',
+    'https://unpkg.com'
+  ];
+  
+  return allowedOrigins.includes(origin);
+}
 
 // Caching strategies
 async function cacheFirst(request, cacheName) {
