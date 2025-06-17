@@ -236,9 +236,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 signups.push(signupData);
                 localStorage.setItem('2du-signups', JSON.stringify(signups));
                 
-                // Redirect to success page after a short delay
+                // Redirect to success page after a short delay with fallback
                 setTimeout(() => {
-                    window.location.href = '/success/';
+                    // Try multiple redirect approaches for better compatibility
+                    try {
+                        // Primary redirect
+                        window.location.href = '/success/';
+                    } catch (error) {
+                        // Fallback redirect methods
+                        try {
+                            window.location.assign('/success/');
+                        } catch (error2) {
+                            // Last resort - replace current page
+                            window.location.replace('/success/');
+                        }
+                    }
                 }, 2000);
             } else {
                 // All endpoints failed, but still store locally and show message
@@ -262,9 +274,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reset form
                 this.reset();
                 
-                // Still redirect to success page
+                // Still redirect to success page with fallback
                 setTimeout(() => {
-                    window.location.href = '/success/';
+                    // Try multiple redirect approaches for better compatibility
+                    try {
+                        // Primary redirect
+                        window.location.href = '/success/';
+                    } catch (error) {
+                        // Fallback redirect methods
+                        try {
+                            window.location.assign('/success/');
+                        } catch (error2) {
+                            // Last resort - replace current page
+                            window.location.replace('/success/');
+                        }
+                    }
                 }, 2000);
             }
             

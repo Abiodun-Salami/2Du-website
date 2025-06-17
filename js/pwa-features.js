@@ -103,9 +103,10 @@ class PWAFeatures {
     window.addEventListener('online', () => this.handleOnlineStatus(true));
     window.addEventListener('offline', () => this.handleOnlineStatus(false));
     
-    // App install events with enhanced debugging
+    // App install events with enhanced debugging for Brave browser
     window.addEventListener('beforeinstallprompt', (e) => {
-      console.log('2Du! PWA: beforeinstallprompt event fired - install prompt captured');
+      console.log('📱 2Du! PWA: beforeinstallprompt event fired - install prompt captured');
+      console.log('📱 2Du! PWA: Browser:', navigator.userAgent.includes('Brave') ? 'Brave' : 'Other');
       e.preventDefault();
       this.installPrompt = e;
       
@@ -116,7 +117,7 @@ class PWAFeatures {
     });
     
     window.addEventListener('appinstalled', () => {
-      console.log('2Du! PWA: App installed successfully');
+      console.log('🎉 2Du! PWA: App installed successfully');
       this.isInstalled = true;
       this.hideInstallBanner();
       this.showInstallSuccess();
@@ -134,51 +135,115 @@ class PWAFeatures {
       // Enable touch interactions
     }, { passive: true });
     
-    // Check for install prompt availability after page load
+    // Enhanced install prompt detection for Brave browser
     window.addEventListener('load', () => {
       setTimeout(() => {
         this.checkInstallPromptAvailability();
-      }, 5000); // Wait 5 seconds after page load for better detection
+      }, 3000); // Reduced delay for faster detection
     });
     
-    // Additional check on DOMContentLoaded
+    // Additional check on DOMContentLoaded for immediate detection
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         this.checkInstallPromptAvailability();
-      }, 2000);
+      }, 1000); // Faster initial check
     });
+    
+    // Brave browser specific checks
+    if (navigator.userAgent.includes('Brave') || navigator.brave) {
+      console.log('🦁 2Du! PWA: Brave browser detected, using enhanced compatibility mode');
+      
+      // Additional checks for Brave browser
+      setTimeout(() => {
+        this.checkBraveInstallCompatibility();
+      }, 2000);
+      
+      // Periodic checks for Brave (beforeinstallprompt may be delayed)
+      setInterval(() => {
+        if (!this.installPrompt && !this.isInstalled) {
+          this.checkInstallPromptAvailability();
+        }
+      }, 10000); // Check every 10 seconds
+    }
   }
   
   checkInstallPromptAvailability() {
-    console.log('2Du! PWA: === Install Prompt Availability Check ===');
-    console.log('2Du! PWA: Install prompt available:', !!this.installPrompt);
-    console.log('2Du! PWA: Is installed:', this.isInstalled);
-    console.log('2Du! PWA: User agent:', navigator.userAgent);
-    console.log('2Du! PWA: Is HTTPS:', location.protocol === 'https:');
-    console.log('2Du! PWA: Service worker registered:', !!navigator.serviceWorker.controller);
+    console.log('🔍 2Du! PWA: === Install Prompt Availability Check ===');
+    console.log('📱 2Du! PWA: Install prompt available:', !!this.installPrompt);
+    console.log('📱 2Du! PWA: Is installed:', this.isInstalled);
+    console.log('🌐 2Du! PWA: User agent:', navigator.userAgent);
+    console.log('🔒 2Du! PWA: Is HTTPS:', location.protocol === 'https:');
+    console.log('🔧 2Du! PWA: Service worker registered:', !!navigator.serviceWorker.controller);
     
     // Check if app is already installed
     if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('2Du! PWA: App is running in standalone mode (already installed)');
+      console.log('✅ 2Du! PWA: App is running in standalone mode (already installed)');
       this.isInstalled = true;
       return;
     }
     
     // Show install banner if conditions are met
     if (!this.isInstalled && !this.installPrompt) {
-      console.log('2Du! PWA: No automatic install prompt detected, showing manual install option');
+      console.log('⚠️ 2Du! PWA: No automatic install prompt detected, showing manual install option');
       this.showManualInstallBanner();
     } else if (!this.isInstalled && this.installPrompt) {
-      console.log('2Du! PWA: Install prompt available, showing install banner');
+      console.log('✅ 2Du! PWA: Install prompt available, showing install banner');
       this.showInstallBanner();
+    }
+  }
+  
+  checkBraveInstallCompatibility() {
+    console.log('🦁 2Du! PWA: === Brave Browser Install Compatibility Check ===');
+    
+    // Check PWA installation criteria for Brave
+    const criteria = {
+      https: location.protocol === 'https:',
+      manifest: !!document.querySelector('link[rel="manifest"]'),
+      serviceWorker: 'serviceWorker' in navigator,
+      swRegistered: !!navigator.serviceWorker.controller,
+      beforeInstallPrompt: !!this.installPrompt,
+      standalone: window.matchMedia('(display-mode: standalone)').matches
+    };
+    
+    console.log('🔍 2Du! PWA: Brave install criteria:', criteria);
+    
+    // Check if all basic criteria are met
+    const basicCriteriaMet = criteria.https && criteria.manifest && criteria.serviceWorker;
+    
+    if (!basicCriteriaMet) {
+      console.log('❌ 2Du! PWA: Basic PWA criteria not met for Brave');
+      return;
+    }
+    
+    // If criteria are met but no prompt, show manual install
+    if (basicCriteriaMet && !criteria.beforeInstallPrompt && !criteria.standalone) {
+      console.log('🦁 2Du! PWA: Brave browser - criteria met but no prompt, showing manual install');
+      setTimeout(() => {
+        this.showManualInstallBanner();
+      }, 1000);
+    }
+    
+    // Check if Brave has specific PWA settings that might block the prompt
+    if (navigator.brave) {
+      console.log('🦁 2Du! PWA: Brave API detected, checking PWA support');
+      // Brave browser has specific PWA handling
     }
   }
   
   showManualInstallBanner() {
     // Only show if not already installed and no automatic prompt
     if (this.isInstalled || this.installPrompt) {
+      console.log('📱 2Du! PWA: Skipping manual install banner - already installed or prompt available');
       return;
     }
+    
+    // Check if manual banner already exists
+    if (document.getElementById('manual-install-banner')) {
+      console.log('📱 2Du! PWA: Manual install banner already exists');
+      return;
+    }
+    
+    console.log('📱 2Du! PWA: Showing manual install banner for Brave/unsupported browsers');
     
     const banner = document.createElement('div');
     banner.id = 'manual-install-banner';
@@ -186,7 +251,7 @@ class PWAFeatures {
     banner.innerHTML = `
       <div class="banner-content">
         <div class="banner-text">
-          <h3>Install 2Du! App</h3>
+          <h3>📱 Install 2Du! App</h3>
           <p>Add to your home screen for the best experience</p>
         </div>
         <div class="banner-buttons">
@@ -207,7 +272,7 @@ class PWAFeatures {
       installButton.addEventListener(eventType, (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('2Du! PWA: Manual install button triggered via', eventType);
+        console.log('📱 2Du! PWA: Manual install button triggered via', eventType);
         this.showInstallInstructions();
         banner.remove();
       }, { passive: false });
@@ -215,9 +280,107 @@ class PWAFeatures {
       dismissButton.addEventListener(eventType, (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('2Du! PWA: Dismiss manual install triggered via', eventType);
+        console.log('📱 2Du! PWA: Dismiss manual install triggered via', eventType);
         banner.remove();
       }, { passive: false });
+    });
+  }
+  
+  showInstallInstructions() {
+    const isBrave = navigator.userAgent.includes('Brave') || navigator.brave;
+    const isChrome = navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Brave');
+    const isSafari = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
+    const isFirefox = navigator.userAgent.includes('Firefox');
+    
+    let instructions = '';
+    
+    if (isBrave) {
+      instructions = `
+        <h3>🦁 Install on Brave Browser:</h3>
+        <ol>
+          <li>Click the menu button (⋮) in the top right</li>
+          <li>Select "Install 2Du!..." or "Add to Home screen"</li>
+          <li>Click "Install" in the popup</li>
+          <li>The app will be added to your desktop/home screen</li>
+        </ol>
+        <p><strong>Note:</strong> If you don't see the install option, make sure Brave's PWA features are enabled in Settings → Advanced → Privacy and security → Site settings → Additional content settings → Progressive Web Apps.</p>
+      `;
+    } else if (isChrome) {
+      instructions = `
+        <h3>🌐 Install on Chrome:</h3>
+        <ol>
+          <li>Click the install icon (⊞) in the address bar</li>
+          <li>Or click menu (⋮) → "Install 2Du!..."</li>
+          <li>Click "Install" in the popup</li>
+        </ol>
+      `;
+    } else if (isSafari) {
+      instructions = `
+        <h3>🍎 Install on Safari:</h3>
+        <ol>
+          <li>Tap the Share button (□↗)</li>
+          <li>Scroll down and tap "Add to Home Screen"</li>
+          <li>Tap "Add" to confirm</li>
+        </ol>
+      `;
+    } else if (isFirefox) {
+      instructions = `
+        <h3>🦊 Install on Firefox:</h3>
+        <ol>
+          <li>Click the menu button (☰)</li>
+          <li>Select "Install 2Du!..." if available</li>
+          <li>Or bookmark this page for quick access</li>
+        </ol>
+      `;
+    } else {
+      instructions = `
+        <h3>📱 Install Instructions:</h3>
+        <ol>
+          <li>Look for an install icon in your browser's address bar</li>
+          <li>Or check your browser's menu for "Install" or "Add to Home Screen"</li>
+          <li>Follow the prompts to install the app</li>
+        </ol>
+      `;
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'install-instructions-modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📱 Install 2Du! App</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          ${instructions}
+          <p><strong>Benefits of installing:</strong></p>
+          <ul>
+            <li>✅ Faster loading and offline access</li>
+            <li>✅ Desktop/home screen shortcut</li>
+            <li>✅ Full-screen app experience</li>
+            <li>✅ Push notifications (when available)</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary close-modal">Got it!</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close modal functionality
+    modal.querySelectorAll('.close-modal').forEach(button => {
+      button.addEventListener('click', () => {
+        modal.remove();
+      });
+    });
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
     });
   }
   
@@ -562,32 +725,78 @@ class PWAFeatures {
   
   async subscribeToPush() {
     try {
+      console.log('🔔 2Du! PWA: Starting push subscription process');
+      
+      // Check if service worker is available
+      if (!('serviceWorker' in navigator)) {
+        console.log('❌ 2Du! PWA: Service workers not supported');
+        return;
+      }
+      
       const registration = await navigator.serviceWorker.ready;
+      console.log('🔧 2Du! PWA: Service worker ready');
+      
+      // Check if pushManager is available
+      if (!registration.pushManager) {
+        console.log('❌ 2Du! PWA: Push messaging not supported');
+        this.showNotificationError('Push notifications are not supported in this browser');
+        return;
+      }
+      
+      console.log('✅ 2Du! PWA: Push manager available');
       
       // Check if VAPID key is configured
       const vapidKey = this.getVapidKey();
       if (!vapidKey) {
-        console.log('2Du! PWA: VAPID key not configured, skipping push subscription');
+        console.log('⚠️ 2Du! PWA: VAPID key not configured, skipping push subscription');
         return;
       }
       
+      console.log('🔑 2Du! PWA: VAPID key configured, attempting subscription');
+      
+      // Check if already subscribed
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        console.log('✅ 2Du! PWA: Already subscribed to push notifications');
+        return;
+      }
+      
+      // Subscribe to push notifications
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: this.urlBase64ToUint8Array(vapidKey)
       });
       
-      // Send subscription to server
-      await fetch('/api/push-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subscription)
-      });
+      console.log('🎉 2Du! PWA: Push subscription successful');
       
-      console.log('2Du! PWA: Push subscription successful');
+      // Send subscription to server (optional - graceful failure)
+      try {
+        await fetch('/api/push-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(subscription)
+        });
+        console.log('📤 2Du! PWA: Subscription sent to server');
+      } catch (serverError) {
+        console.log('⚠️ 2Du! PWA: Failed to send subscription to server (non-critical):', serverError.message);
+        // Don't throw error - subscription still works locally
+      }
+      
     } catch (error) {
-      console.error('2Du! PWA: Push subscription failed:', error);
+      console.error('❌ 2Du! PWA: Push subscription failed:', error);
+      
+      // Provide specific error messages for common issues
+      if (error.name === 'NotSupportedError') {
+        this.showNotificationError('Push notifications are not supported in this browser');
+      } else if (error.name === 'NotAllowedError') {
+        this.showNotificationError('Push notifications were blocked. Please enable them in browser settings.');
+      } else if (error.message.includes('pushManager')) {
+        this.showNotificationError('Push messaging is not available in this browser');
+      } else {
+        this.showNotificationError('Failed to set up push notifications: ' + error.message);
+      }
     }
   }
   
