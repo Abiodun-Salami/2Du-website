@@ -18,6 +18,18 @@
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://2du.ai/">
     <meta property="twitter:title" content="2Du! - AI-Powered Social Productivity Platform">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="2Du!">
+    <link rel="apple-touch-icon" href="/images/2du-logo-192x192.png">
+    
+    <!-- Mobile optimization -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="2Du!">
     <meta property="twitter:description" content="Transform your productivity with AI coaching and social accountability">
     <meta property="twitter:image" content="https://2du.ai/images/og-image.jpg">
 
@@ -39,11 +51,15 @@
       gtag('config', 'G-Y6590QZERE');
     </script>
     
+    <!-- Netlify Identity Widget -->
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pwa.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -509,54 +525,33 @@
                     </div>
                 </div>
                 <div class="early-access-form">
-         <div class="early-access-form">
-  <form name="early-access" method="POST" action="/success/" data-netlify="true" netlify-honeypot="bot-field" class="signup-form">
-    
-    <!-- Hidden input to signal Netlify form handling -->
-    <input type="hidden" name="form-name" value="early-access" />
-
-    <!-- Honeypot field for spam bots -->
-    <p hidden>
-      <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
-    </p>
-
-    <!-- Email -->
-    <div class="form-group">
-      <input type="email" name="email" placeholder="Enter your email address" required />
-    </div>
-
-    <!-- Name -->
-    <div class="form-group">
-      <input type="text" name="name" placeholder="Your name" required />
-    </div>
-
-    <!-- Role -->
-    <div class="form-group">
-      <select name="role" required>
-        <option value="">What describes you best?</option>
-        <option value="entrepreneur">Entrepreneur</option>
-        <option value="student">Student</option>
-        <option value="professional">Working Professional</option>
-        <option value="freelancer">Freelancer</option>
-        <option value="manager">Team Manager</option>
-        <option value="other">Other</option>
-      </select>
-    </div>
-
-    <!-- Submit Button -->
-    <!-- <button type="submit" class="btn btn-primary btn-large">
-      <i class="fas fa-rocket"></i> Get Early Access
-    </button> -->
-    <a href="/success/" class="btn btn-primary btn-large">
-        <i class="fas fa-rocket"></i> Get Early Access
-    </a>
-
-    <p class="form-note">
-      <i class="fas fa-lock"></i> We respect your privacy. Unsubscribe at any time.
-    </p>
-  </form>
-</div>
-
+                    <form id="early-access-form" class="signup-form">
+                        <div class="form-group">
+                            <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="name" name="name" placeholder="Your name" required>
+                        </div>
+                        <div class="form-group">
+                            <select id="role" name="role" required>
+                                <option value="">What describes you best?</option>
+                                <option value="entrepreneur">Entrepreneur</option>
+                                <option value="student">Student</option>
+                                <option value="professional">Working Professional</option>
+                                <option value="freelancer">Freelancer</option>
+                                <option value="manager">Team Manager</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-rocket"></i>
+                            Get Early Access
+                        </button>
+                        <p class="form-note">
+                            <i class="fas fa-lock"></i>
+                            We respect your privacy. Unsubscribe at any time.
+                        </p>
+                    </form>
                 </div>
             </div>
         </div>
@@ -621,6 +616,137 @@
 
     <!-- JavaScript -->
     <script src="js/script.js"></script>
+    
+    <!-- Netlify Identity Widget -->
+    <script>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", user => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/admin/";
+            });
+          }
+        });
+      }
+    </script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+      // Register service worker for PWA functionality
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('2Du! PWA: Service Worker registered successfully:', registration.scope);
+              
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New content available, show update notification
+                    if (confirm('New version of 2Du! is available. Update now?')) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.log('2Du! PWA: Service Worker registration failed:', error);
+            });
+        });
+      }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
+        
+        // Show install button/banner
+        showInstallPromotion();
+      });
+
+      function showInstallPromotion() {
+        // Create install banner
+        const installBanner = document.createElement('div');
+        installBanner.id = 'install-banner';
+        installBanner.innerHTML = `
+          <div style="background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white; padding: 16px; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="max-width: 600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="/images/2du-logo-192x192.png" alt="2Du!" style="width: 32px; height: 32px; border-radius: 6px;">
+                <div>
+                  <div style="font-weight: 600; font-size: 16px;">Install 2Du! App</div>
+                  <div style="font-size: 14px; opacity: 0.9;">Get the full mobile experience</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button onclick="installPWA()" style="background: white; color: #4F46E5; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">Install</button>
+                <button onclick="dismissInstallBanner()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(installBanner);
+        
+        // Add margin to body to account for banner
+        document.body.style.marginTop = '80px';
+      }
+
+      function installPWA() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('2Du! PWA: User accepted the install prompt');
+            } else {
+              console.log('2Du! PWA: User dismissed the install prompt');
+            }
+            deferredPrompt = null;
+            dismissInstallBanner();
+          });
+        }
+      }
+
+      function dismissInstallBanner() {
+        const banner = document.getElementById('install-banner');
+        if (banner) {
+          banner.remove();
+          document.body.style.marginTop = '0';
+        }
+      }
+
+      // Track PWA usage
+      window.addEventListener('appinstalled', (evt) => {
+        console.log('2Du! PWA: App was installed');
+        // Track installation event
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'pwa_install', {
+            event_category: 'PWA',
+            event_label: 'App Installed'
+          });
+        }
+      });
+
+      // Detect if running as PWA
+      function isPWA() {
+        return window.matchMedia('(display-mode: standalone)').matches || 
+               window.navigator.standalone === true;
+      }
+
+      // Add PWA-specific styling when running as app
+      if (isPWA()) {
+        document.documentElement.classList.add('pwa-mode');
+        console.log('2Du! PWA: Running as installed app');
+      }
+    </script>
+    
+    <!-- PWA Advanced Features -->
+    <script src="js/pwa-features.js"></script>
 </body>
 </html>
 

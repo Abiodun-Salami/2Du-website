@@ -1,0 +1,101 @@
+backend:
+  name: git-gateway
+  branch: main # Branch to update (optional; defaults to master)
+
+# Uncomment below to enable drafts
+# publish_mode: editorial_workflow
+
+media_folder: "images/uploads" # Media files will be stored in the repo under images/uploads
+public_folder: "/images/uploads" # The src attribute for uploaded media will begin with /images/uploads
+
+collections:
+  - name: "blog" # Used in routes, e.g., /admin/collections/blog
+    label: "Blog" # Used in the UI
+    folder: "content/blog" # The path to the folder where the documents are stored
+    create: true # Allow users to create new documents in this collection
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}" # Filename template, e.g., YYYY-MM-DD-title.md
+    fields: # The fields for each document, usually in front matter
+      - {label: "Layout", name: "layout", widget: "hidden", default: "blog"}
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Publish Date", name: "date", widget: "datetime"}
+      - {label: "Featured Image", name: "thumbnail", widget: "image", required: false}
+      - {label: "Rating (scale of 1-5)", name: "rating", widget: "number", required: false}
+      - {label: "Body", name: "body", widget: "markdown"}
+      - {label: "Tags", name: "tags", widget: "list", required: false}
+      - {label: "Author", name: "author", widget: "string", default: "2Du! Team"}
+      - {label: "SEO Description", name: "description", widget: "text", required: false}
+
+  - name: "pages"
+    label: "Pages"
+    files:
+      - label: "Homepage"
+        name: "homepage"
+        file: "content/homepage.md"
+        fields:
+          - {label: "Title", name: "title", widget: "string"}
+          - {label: "Hero Headline", name: "hero_headline", widget: "string"}
+          - {label: "Hero Subheadline", name: "hero_subheadline", widget: "text"}
+          - {label: "CTA Button Text", name: "cta_text", widget: "string"}
+          - {label: "Features Section Title", name: "features_title", widget: "string"}
+          - {label: "Body", name: "body", widget: "markdown"}
+      
+      - label: "About Page"
+        name: "about"
+        file: "content/about.md"
+        fields:
+          - {label: "Title", name: "title", widget: "string"}
+          - {label: "Body", name: "body", widget: "markdown"}
+          - {label: "Team Section", name: "team", widget: "markdown", required: false}
+      
+      - label: "Contact Page"
+        name: "contact"
+        file: "content/contact.md"
+        fields:
+          - {label: "Title", name: "title", widget: "string"}
+          - {label: "Contact Email", name: "email", widget: "string"}
+          - {label: "Phone", name: "phone", widget: "string", required: false}
+          - {label: "Address", name: "address", widget: "text", required: false}
+          - {label: "Body", name: "body", widget: "markdown"}
+
+  - name: "announcements"
+    label: "Announcements"
+    folder: "content/announcements"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Date", name: "date", widget: "datetime"}
+      - {label: "Type", name: "type", widget: "select", options: ["update", "feature", "maintenance", "news"]}
+      - {label: "Priority", name: "priority", widget: "select", options: ["low", "medium", "high"], default: "medium"}
+      - {label: "Body", name: "body", widget: "markdown"}
+      - {label: "Show on Homepage", name: "featured", widget: "boolean", default: false}
+
+  - name: "settings"
+    label: "Site Settings"
+    files:
+      - label: "General Settings"
+        name: "general"
+        file: "content/settings/general.md"
+        fields:
+          - {label: "Site Title", name: "site_title", widget: "string"}
+          - {label: "Site Description", name: "site_description", widget: "text"}
+          - {label: "Site URL", name: "site_url", widget: "string"}
+          - {label: "Contact Email", name: "contact_email", widget: "string"}
+          - {label: "Social Media Links", name: "social", widget: "object", fields: [
+              {label: "Twitter", name: "twitter", widget: "string", required: false},
+              {label: "LinkedIn", name: "linkedin", widget: "string", required: false},
+              {label: "Facebook", name: "facebook", widget: "string", required: false},
+              {label: "Instagram", name: "instagram", widget: "string", required: false}
+            ]}
+          - {label: "Google Analytics ID", name: "google_analytics", widget: "string", required: false}
+      
+      - label: "SEO Settings"
+        name: "seo"
+        file: "content/settings/seo.md"
+        fields:
+          - {label: "Default Meta Title", name: "meta_title", widget: "string"}
+          - {label: "Default Meta Description", name: "meta_description", widget: "text"}
+          - {label: "Default OG Image", name: "og_image", widget: "image", required: false}
+          - {label: "Twitter Handle", name: "twitter_handle", widget: "string", required: false}
+          - {label: "Favicon", name: "favicon", widget: "image", required: false}
+
