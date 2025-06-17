@@ -831,3 +831,315 @@
   }
 }
 
+
+/* Enhanced PWA Mobile Features */
+
+/* Install banner mobile optimizations */
+.install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  color: white;
+  padding: 1rem;
+  z-index: 10000;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.install-banner:not(.hidden) {
+  transform: translateY(0);
+}
+
+.install-banner .banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.install-banner .banner-text h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.install-banner .banner-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.install-banner .banner-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.install-banner .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.install-banner .btn-primary {
+  background: white;
+  color: #4F46E5;
+  font-weight: 600;
+}
+
+.install-banner .btn-primary:hover,
+.install-banner .btn-primary:active {
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.install-banner .btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.install-banner .btn-secondary:hover,
+.install-banner .btn-secondary:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Notification prompt mobile optimizations */
+.notification-prompt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 1rem;
+}
+
+.notification-prompt .prompt-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.notification-prompt h3 {
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.notification-prompt p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.notification-prompt .prompt-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.notification-prompt .btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.notification-prompt .btn-primary {
+  background: #4F46E5;
+  color: white;
+}
+
+.notification-prompt .btn-primary:hover,
+.notification-prompt .btn-primary:active {
+  background: #4338CA;
+  transform: translateY(-1px);
+}
+
+.notification-prompt .btn-secondary {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.notification-prompt .btn-secondary:hover,
+.notification-prompt .btn-secondary:active {
+  background: #e5e7eb;
+}
+
+/* Install instructions modal */
+.install-instructions {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10002;
+  padding: 1rem;
+}
+
+.install-instructions .instructions-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.install-instructions h3 {
+  margin: 0 0 1.5rem 0;
+  color: #1f2937;
+  text-align: center;
+}
+
+.install-instructions .instructions-steps {
+  margin-bottom: 2rem;
+}
+
+.install-instructions p {
+  margin: 1rem 0 0.5rem 0;
+  font-weight: 600;
+  color: #4F46E5;
+}
+
+.install-instructions ol {
+  margin: 0.5rem 0 1rem 1rem;
+  padding: 0;
+}
+
+.install-instructions li {
+  margin: 0.25rem 0;
+  color: #6b7280;
+}
+
+/* Toast notifications */
+.install-success-toast,
+.notification-error-toast {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: white;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 10003;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 300px;
+  animation: slideInRight 0.3s ease;
+}
+
+.install-success-toast {
+  border-left: 4px solid #10b981;
+  color: #065f46;
+}
+
+.notification-error-toast {
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+}
+
+.install-success-toast i {
+  color: #10b981;
+  font-size: 1.25rem;
+}
+
+.notification-error-toast i {
+  color: #ef4444;
+  font-size: 1.25rem;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile-specific touch improvements */
+@media (max-width: 768px) {
+  .install-banner .banner-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .install-banner .banner-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .notification-prompt .prompt-content {
+    padding: 1.5rem;
+  }
+  
+  .notification-prompt .prompt-buttons {
+    flex-direction: column;
+  }
+  
+  .notification-prompt .btn {
+    width: 100%;
+  }
+  
+  .install-instructions .instructions-content {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .install-success-toast,
+  .notification-error-toast {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+}
+
+/* Improve touch targets */
+.btn, button {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on buttons */
+.btn, button {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+

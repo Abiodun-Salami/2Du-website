@@ -198,6 +198,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     signups.push(signupData);
                     localStorage.setItem('2du-signups', JSON.stringify(signups));
                     
+                    // Redirect to success page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/success/';
+                    }, 2000);
                 } else {
                     throw new Error('Network response was not ok');
                 }

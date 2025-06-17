@@ -57,12 +57,14 @@ class PWAFeatures {
     
     // App install events
     window.addEventListener('beforeinstallprompt', (e) => {
+      console.log('2Du! PWA: beforeinstallprompt event fired');
       e.preventDefault();
       this.installPrompt = e;
       this.showInstallBanner();
     });
     
     window.addEventListener('appinstalled', () => {
+      console.log('2Du! PWA: App installed successfully');
       this.isInstalled = true;
       this.hideInstallBanner();
       this.showInstallSuccess();
@@ -74,6 +76,11 @@ class PWAFeatures {
         this.triggerBackgroundSync();
       }
     });
+    
+    // Mobile-specific events for better touch handling
+    document.addEventListener('touchstart', () => {
+      // Enable touch interactions
+    }, { passive: true });
   }
   
   setupOfflineDetection() {
@@ -165,14 +172,25 @@ class PWAFeatures {
     
     document.body.appendChild(banner);
     
-    // Install button click
-    document.getElementById('install-button').addEventListener('click', () => {
-      this.promptInstall();
-    });
+    // Enhanced install button click with mobile support
+    const installButton = document.getElementById('install-button');
+    const dismissButton = document.getElementById('dismiss-install');
     
-    // Dismiss button click
-    document.getElementById('dismiss-install').addEventListener('click', () => {
-      this.hideInstallBanner();
+    // Add both click and touchend events for better mobile support
+    ['click', 'touchend'].forEach(eventType => {
+      installButton.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('2Du! PWA: Install button triggered via', eventType);
+        this.promptInstall();
+      }, { passive: false });
+      
+      dismissButton.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('2Du! PWA: Dismiss button triggered via', eventType);
+        this.hideInstallBanner();
+      }, { passive: false });
     });
   }
   
@@ -187,19 +205,65 @@ class PWAFeatures {
   }
   
   async promptInstall() {
+    console.log('2Du! PWA: promptInstall called, installPrompt:', !!this.installPrompt);
+    
     if (this.installPrompt) {
-      this.installPrompt.prompt();
-      const result = await this.installPrompt.userChoice;
-      
-      if (result.outcome === 'accepted') {
-        console.log('2Du! PWA: User accepted install prompt');
-      } else {
-        console.log('2Du! PWA: User dismissed install prompt');
+      try {
+        console.log('2Du! PWA: Showing install prompt');
+        this.installPrompt.prompt();
+        const result = await this.installPrompt.userChoice;
+        
+        console.log('2Du! PWA: User choice:', result.outcome);
+        
+        if (result.outcome === 'accepted') {
+          console.log('2Du! PWA: User accepted install prompt');
+        } else {
+          console.log('2Du! PWA: User dismissed install prompt');
+        }
+        
+        this.installPrompt = null;
+        this.hideInstallBanner();
+      } catch (error) {
+        console.error('2Du! PWA: Error showing install prompt:', error);
+        // Fallback for browsers that don't support the install prompt
+        this.showInstallInstructions();
       }
-      
-      this.installPrompt = null;
-      this.hideInstallBanner();
+    } else {
+      console.log('2Du! PWA: No install prompt available, showing instructions');
+      this.showInstallInstructions();
     }
+  }
+  
+  showInstallInstructions() {
+    const instructions = document.createElement('div');
+    instructions.className = 'install-instructions';
+    instructions.innerHTML = `
+      <div class="instructions-content">
+        <h3>Install 2Du! App</h3>
+        <div class="instructions-steps">
+          <p><strong>On Android Chrome:</strong></p>
+          <ol>
+            <li>Tap the menu (⋮) in the top right</li>
+            <li>Select "Add to Home screen"</li>
+            <li>Tap "Add" to install</li>
+          </ol>
+          <p><strong>On iOS Safari:</strong></p>
+          <ol>
+            <li>Tap the share button (□↗)</li>
+            <li>Scroll down and tap "Add to Home Screen"</li>
+            <li>Tap "Add" to install</li>
+          </ol>
+        </div>
+        <button id="close-instructions" class="btn btn-secondary">Got it</button>
+      </div>
+    `;
+    
+    document.body.appendChild(instructions);
+    
+    document.getElementById('close-instructions').addEventListener('click', () => {
+      instructions.remove();
+      this.hideInstallBanner();
+    });
   }
   
   showInstallSuccess() {
@@ -246,28 +310,75 @@ class PWAFeatures {
     
     document.body.appendChild(prompt);
     
-    document.getElementById('enable-notifications').addEventListener('click', async () => {
-      await this.requestNotificationPermission();
-      prompt.remove();
-    });
+    const enableButton = document.getElementById('enable-notifications');
+    const skipButton = document.getElementById('skip-notifications');
     
-    document.getElementById('skip-notifications').addEventListener('click', () => {
-      prompt.remove();
+    // Enhanced mobile event handling for notification buttons
+    ['click', 'touchend'].forEach(eventType => {
+      enableButton.addEventListener(eventType, async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('2Du! PWA: Enable notifications triggered via', eventType);
+        
+        // Add visual feedback
+        enableButton.textContent = 'Enabling...';
+        enableButton.disabled = true;
+        
+        try {
+          await this.requestNotificationPermission();
+          prompt.remove();
+        } catch (error) {
+          console.error('2Du! PWA: Notification enable error:', error);
+          enableButton.textContent = 'Enable Notifications';
+          enableButton.disabled = false;
+          this.showNotificationError();
+        }
+      }, { passive: false });
+      
+      skipButton.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('2Du! PWA: Skip notifications triggered via', eventType);
+        prompt.remove();
+      }, { passive: false });
     });
   }
   
   async requestNotificationPermission() {
     try {
+      console.log('2Du! PWA: Requesting notification permission');
       const permission = await Notification.requestPermission();
       this.notificationPermission = permission;
+      
+      console.log('2Du! PWA: Notification permission result:', permission);
       
       if (permission === 'granted') {
         await this.subscribeToPush();
         this.showNotificationSuccess();
+      } else if (permission === 'denied') {
+        this.showNotificationError('Notifications were blocked. You can enable them in your browser settings.');
+      } else {
+        this.showNotificationError('Notification permission was not granted.');
       }
     } catch (error) {
       console.error('2Du! PWA: Notification permission error:', error);
+      this.showNotificationError('Failed to request notification permission.');
     }
+  }
+  
+  showNotificationError(message = 'Failed to enable notifications') {
+    const toast = document.createElement('div');
+    toast.className = 'notification-error-toast';
+    toast.innerHTML = `
+      <i class="fas fa-exclamation-triangle"></i>
+      ${message}
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.remove();
+    }, 5000);
   }
   
   async subscribeToPush() {
