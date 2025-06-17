@@ -1,11 +1,14 @@
 # Netlify redirects and rewrites
 
-# Handle success page redirect
+# Handle success page redirect (permanent redirect)
 /success /success/ 301
 
-# Handle trailing slash redirects
+# Handle success page with trailing slash
 /success/ /success/index.html 200
 
-# PWA offline fallback
+# Handle form submission redirects
+/submit-success /success/ 302
+
+# PWA offline fallback (must be last)
 /* /offline.html 200
 

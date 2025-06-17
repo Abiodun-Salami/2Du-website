@@ -55,7 +55,7 @@ class PWAFeatures {
     window.addEventListener('online', () => this.handleOnlineStatus(true));
     window.addEventListener('offline', () => this.handleOnlineStatus(false));
     
-    // App install events
+    // App install events with enhanced debugging
     window.addEventListener('beforeinstallprompt', (e) => {
       console.log('2Du! PWA: beforeinstallprompt event fired');
       e.preventDefault();
@@ -81,6 +81,73 @@ class PWAFeatures {
     document.addEventListener('touchstart', () => {
       // Enable touch interactions
     }, { passive: true });
+    
+    // Check for install prompt availability after page load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        this.checkInstallPromptAvailability();
+      }, 3000); // Wait 3 seconds after page load
+    });
+  }
+  
+  checkInstallPromptAvailability() {
+    console.log('2Du! PWA: Checking install prompt availability');
+    console.log('2Du! PWA: Install prompt available:', !!this.installPrompt);
+    console.log('2Du! PWA: Is installed:', this.isInstalled);
+    console.log('2Du! PWA: User agent:', navigator.userAgent);
+    
+    // Show install banner if conditions are met
+    if (!this.isInstalled && !this.installPrompt) {
+      console.log('2Du! PWA: No install prompt detected, showing manual install option');
+      this.showManualInstallBanner();
+    }
+  }
+  
+  showManualInstallBanner() {
+    // Only show if not already installed and no automatic prompt
+    if (this.isInstalled || this.installPrompt) {
+      return;
+    }
+    
+    const banner = document.createElement('div');
+    banner.id = 'manual-install-banner';
+    banner.className = 'install-banner';
+    banner.innerHTML = `
+      <div class="banner-content">
+        <div class="banner-text">
+          <h3>Install 2Du! App</h3>
+          <p>Add to your home screen for the best experience</p>
+        </div>
+        <div class="banner-buttons">
+          <button id="manual-install-button" class="btn btn-primary">How to Install</button>
+          <button id="dismiss-manual-install" class="btn btn-secondary">Later</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(banner);
+    
+    // Enhanced install button click with mobile support
+    const installButton = document.getElementById('manual-install-button');
+    const dismissButton = document.getElementById('dismiss-manual-install');
+    
+    // Add both click and touchend events for better mobile support
+    ['click', 'touchend'].forEach(eventType => {
+      installButton.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('2Du! PWA: Manual install button triggered via', eventType);
+        this.showInstallInstructions();
+        banner.remove();
+      }, { passive: false });
+      
+      dismissButton.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('2Du! PWA: Dismiss manual install triggered via', eventType);
+        banner.remove();
+      }, { passive: false });
+    });
   }
   
   setupOfflineDetection() {
@@ -347,22 +414,40 @@ class PWAFeatures {
   async requestNotificationPermission() {
     try {
       console.log('2Du! PWA: Requesting notification permission');
-      const permission = await Notification.requestPermission();
-      this.notificationPermission = permission;
       
-      console.log('2Du! PWA: Notification permission result:', permission);
+      // Check if notifications are supported
+      if (!('Notification' in window)) {
+        console.log('2Du! PWA: Notifications not supported');
+        this.showNotificationError('Notifications are not supported in this browser.');
+        return;
+      }
+      
+      // Check current permission status
+      let permission = Notification.permission;
+      console.log('2Du! PWA: Current permission status:', permission);
+      
+      // Request permission if not already granted or denied
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+      
+      this.notificationPermission = permission;
+      console.log('2Du! PWA: Final permission result:', permission);
       
       if (permission === 'granted') {
+        console.log('2Du! PWA: Permission granted, attempting push subscription');
         await this.subscribeToPush();
         this.showNotificationSuccess();
       } else if (permission === 'denied') {
+        console.log('2Du! PWA: Permission denied');
         this.showNotificationError('Notifications were blocked. You can enable them in your browser settings.');
       } else {
+        console.log('2Du! PWA: Permission not granted');
         this.showNotificationError('Notification permission was not granted.');
       }
     } catch (error) {
       console.error('2Du! PWA: Notification permission error:', error);
-      this.showNotificationError('Failed to request notification permission.');
+      this.showNotificationError('Failed to request notification permission: ' + error.message);
     }
   }
   
@@ -415,10 +500,28 @@ class PWAFeatures {
   getVapidKey() {
     // Return the VAPID public key if configured
     // This should be replaced with your actual VAPID public key
-    const vapidKey = process.env.VAPID_PUBLIC_KEY || window.VAPID_PUBLIC_KEY || null;
+    
+    // Check for runtime-safe environment variables
+    let vapidKey = null;
+    
+    // Try different ways to get VAPID key safely
+    try {
+      // Check if process is defined (Node.js environment)
+      if (typeof process !== 'undefined' && process.env && process.env.VAPID_PUBLIC_KEY) {
+        vapidKey = process.env.VAPID_PUBLIC_KEY;
+      }
+    } catch (error) {
+      // process is not defined in browser, continue
+    }
+    
+    // Fallback to window variable
+    if (!vapidKey && typeof window !== 'undefined' && window.VAPID_PUBLIC_KEY) {
+      vapidKey = window.VAPID_PUBLIC_KEY;
+    }
     
     // For development/testing, return null to skip push notifications
     if (!vapidKey || vapidKey === 'YOUR_VAPID_PUBLIC_KEY') {
+      console.log('2Du! PWA: VAPID key not configured, push notifications disabled');
       return null;
     }
     

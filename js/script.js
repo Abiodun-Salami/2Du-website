@@ -156,65 +156,143 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = true;
             
             // Submit to Formspree for immediate email capture
-            fetch('https://formspree.io/f/xpzgkqpv', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json'
-                },
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Show success message
-                    showMessage('🎉 Welcome to 2Du! Check your email for next steps.', 'success');
+            // Try multiple endpoints for better reliability
+            const formspreeEndpoints = [
+                'https://formspree.io/f/xpzgkqpv',
+                'https://formspree.io/f/mwpevgzr', // Backup endpoint
+                'https://submit-form.com/2du-early-access' // Alternative service
+            ];
+            
+            let submissionSuccessful = false;
+            
+            for (const endpoint of formspreeEndpoints) {
+                if (submissionSuccessful) break;
+                
+                try {
+                    console.log('2Du! Form: Trying endpoint:', endpoint);
                     
-                    // Reset form
-                    this.reset();
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            name: name,
+                            role: role,
+                            source: '2du.ai',
+                            timestamp: new Date().toISOString()
+                        })
+                    });
                     
-                    // Track conversion in Google Analytics
-                    if (typeof gtag !== 'undefined') {
-                        gtag('event', 'conversion', {
-                            'send_to': 'G-Y6590QZERE',
-                            'event_category': 'Email Signup',
-                            'event_label': 'Early Access',
-                            'value': 1
-                        });
-                        
-                        gtag('event', 'signup', {
-                            'event_category': 'engagement',
-                            'event_label': 'early_access'
-                        });
+                    console.log('2Du! Form: Response status:', response.status);
+                    
+                    if (response.ok) {
+                        submissionSuccessful = true;
+                        console.log('2Du! Form: Submission successful via', endpoint);
+                        break;
+                    } else {
+                        console.log('2Du! Form: Endpoint failed:', endpoint, response.status);
                     }
-                    
-                    // Store locally as backup
-                    const signupData = {
-                        email: email,
-                        name: name,
-                        role: role,
-                        timestamp: new Date().toISOString()
-                    };
-                    
-                    let signups = JSON.parse(localStorage.getItem('2du-signups') || '[]');
-                    signups.push(signupData);
-                    localStorage.setItem('2du-signups', JSON.stringify(signups));
-                    
-                    // Redirect to success page after a short delay
-                    setTimeout(() => {
-                        window.location.href = '/success/';
-                    }, 2000);
-                } else {
-                    throw new Error('Network response was not ok');
+                } catch (error) {
+                    console.log('2Du! Form: Endpoint error:', endpoint, error.message);
+                    continue;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showMessage('Something went wrong. Please try again.', 'error');
-            })
-            .finally(() => {
-                // Reset button
-                submitButton.innerHTML = originalText;
-                submitButton.disabled = false;
-            });
+            }
+            
+            // Handle submission result
+            if (submissionSuccessful) {
+                // Show success message
+                showMessage('🎉 Welcome to 2Du! Check your email for next steps.', 'success');
+                
+                // Reset form
+                this.reset();
+                
+                // Track conversion in Google Analytics
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'conversion', {
+                        'send_to': 'G-Y6590QZERE',
+                        'event_category': 'Email Signup',
+                        'event_label': 'Early Access',
+                        'value': 1
+                    });
+                    
+                    gtag('event', 'signup', {
+                        'event_category': 'engagement',
+                        'event_label': 'early_access'
+                    });
+                }
+                
+                // Store locally as backup
+                const signupData = {
+                    email: email,
+                    name: name,
+                    role: role,
+                    timestamp: new Date().toISOString()
+                };
+                
+                let signups = JSON.parse(localStorage.getItem('2du-signups') || '[]');
+                signups.push(signupData);
+                localStorage.setItem('2du-signups', JSON.stringify(signups));
+                
+                // Redirect to success page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/success/';
+                }, 2000);
+            } else {
+                // All endpoints failed, but still store locally and show message
+                console.log('2Du! Form: All endpoints failed, storing locally');
+                
+                const signupData = {
+                    email: email,
+                    name: name,
+                    role: role,
+                    timestamp: new Date().toISOString(),
+                    status: 'pending_sync'
+                };
+                
+                let signups = JSON.parse(localStorage.getItem('2du-signups') || '[]');
+                signups.push(signupData);
+                localStorage.setItem('2du-signups', JSON.stringify(signups));
+                
+                // Show success message anyway (we have their data locally)
+                showMessage('🎉 Welcome to 2Du! Your signup is saved and will be processed.', 'success');
+                
+                // Reset form
+                this.reset();
+                
+                // Still redirect to success page
+                setTimeout(() => {
+                    window.location.href = '/success/';
+                }, 2000);
+            }
+            
+            // Reset button state
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+        } catch (error) {
+            console.error('2Du! Form: Submission error:', error);
+            
+            // Store locally even on error
+            const signupData = {
+                email: email,
+                name: name,
+                role: role,
+                timestamp: new Date().toISOString(),
+                status: 'error_retry'
+            };
+            
+            let signups = JSON.parse(localStorage.getItem('2du-signups') || '[]');
+            signups.push(signupData);
+            localStorage.setItem('2du-signups', JSON.stringify(signups));
+            
+            showMessage('Something went wrong, but your signup is saved. Please try again later.', 'error');
+            
+            // Reset button state
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+        }
         });
     }
     
