@@ -747,6 +747,13 @@
     
     <!-- PWA Advanced Features -->
     <script src="js/pwa-features.js"></script>
+    <script>
+      // Initialize PWA features when DOM is loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('2Du! PWA: Initializing PWA features');
+        window.pwaFeatures = new PWAFeatures();
+      });
+    </script>
 </body>
 </html>
 

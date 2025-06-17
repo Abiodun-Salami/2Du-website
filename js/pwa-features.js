@@ -77,27 +77,44 @@ class PWAFeatures {
   }
   
   setupOfflineDetection() {
+    // Initialize with navigator.onLine but don't rely on it completely
     this.handleOnlineStatus(navigator.onLine);
     
-    // Periodic connectivity check
+    // Only do periodic checks if navigator.onLine is false
+    // This prevents unnecessary network requests when online
     setInterval(() => {
-      this.checkConnectivity();
-    }, 30000); // Check every 30 seconds
+      if (!navigator.onLine || !this.isOnline) {
+        this.checkConnectivity();
+      }
+    }, 30000); // Check every 30 seconds only when potentially offline
   }
   
   async checkConnectivity() {
     try {
-      const response = await fetch('/ping', {
+      // Use a lightweight request to check connectivity
+      // Try the main page first, then fallback to a simple fetch
+      const response = await fetch('/', {
         method: 'HEAD',
-        cache: 'no-cache'
+        cache: 'no-cache',
+        mode: 'no-cors'
       });
-      this.handleOnlineStatus(response.ok);
+      this.handleOnlineStatus(true);
     } catch (error) {
-      this.handleOnlineStatus(false);
+      // If that fails, try a simple connectivity test
+      try {
+        const testResponse = await fetch(window.location.origin, {
+          method: 'HEAD',
+          cache: 'no-cache'
+        });
+        this.handleOnlineStatus(testResponse.ok);
+      } catch (secondError) {
+        this.handleOnlineStatus(false);
+      }
     }
   }
   
   handleOnlineStatus(isOnline) {
+    console.log('2Du! PWA: Online status changed to:', isOnline);
     this.isOnline = isOnline;
     
     const offlineIndicator = document.getElementById('offline-indicator');
@@ -109,9 +126,11 @@ class PWAFeatures {
       document.body.classList.remove('offline');
       document.getElementById('offline-indicator').classList.remove('show');
       this.triggerBackgroundSync();
+      console.log('2Du! PWA: App is online - hiding offline indicator');
     } else {
       document.body.classList.add('offline');
       document.getElementById('offline-indicator').classList.add('show');
+      console.log('2Du! PWA: App is offline - showing offline indicator');
     }
   }
   
