@@ -165,6 +165,40 @@ class PWAFeatures {
         }
       }, 10000); // Check every 10 seconds
     }
+    
+    // Set up hero notification button event listener
+    this.setupHeroNotificationButton();
+  }
+  
+  setupHeroNotificationButton() {
+    // Wait for DOM to be ready
+    const setupButton = () => {
+      const heroButton = document.getElementById('hero-enable-notifications');
+      if (heroButton) {
+        console.log('🔔 2Du! PWA: Setting up hero notification button event listeners');
+        
+        // Add both click and touchend events for better mobile support
+        ['click', 'touchend'].forEach(eventType => {
+          heroButton.addEventListener(eventType, async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔔 2Du! PWA: Hero enable notifications button clicked via', eventType);
+            
+            // Call the same notification request function
+            await this.requestNotificationPermission();
+          }, { passive: false });
+        });
+        
+        console.log('✅ 2Du! PWA: Hero notification button event listeners added successfully');
+      } else {
+        console.log('⚠️ 2Du! PWA: Hero notification button not found, retrying...');
+        // Retry after a short delay
+        setTimeout(setupButton, 500);
+      }
+    };
+    
+    // Try to set up immediately, then retry if needed
+    setupButton();
   }
   
   checkInstallPromptAvailability() {
